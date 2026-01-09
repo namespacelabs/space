@@ -34,14 +34,14 @@ Print the version number of the Space CLI.
 
 ```bash
 space version
-space version --json
+space version --output json
 ```
 
 **Flags:**
 
 | Flag | Description |
 |------|-------------|
-| `--json` | Output result as JSON to stdout. |
+| `--output, -o` | Output format: `plain` or `json`. Defaults to `plain`. |
 
 ### `space cache modes`
 
@@ -49,14 +49,14 @@ List available cache modes and whether they are detected in the current environm
 
 ```bash
 space cache modes
-space cache modes --json
+space cache modes -o json
 ```
 
 **Flags:**
 
 | Flag | Description |
 |------|-------------|
-| `--json` | Output result as JSON to stdout. |
+| `--output, -o` | Output format: `plain` or `json`. Defaults to `plain`. |
 
 ### `space cache mount`
 
@@ -69,9 +69,10 @@ Restore cache paths from a Namespace volume.
 | `--detect` | Detects cache mode(s) based on environment. Use `--detect='*'` to enable all detectors, or specify individual modes like `--detect=apt`. Can be specified multiple times. |
 | `--mode` | Explicit cache mode(s) to enable (e.g., `--mode=go`). Can be specified multiple times. |
 | `--path` | Explicit cache path(s) to enable (e.g., `--path=/some/path`). Can be specified multiple times. |
-| `--cache-root` | Override the root path where cache volumes are mounted. Defaults to `$NSC_CACHE_PATH`. |
-| `--dry-run` | If true, mounting is skipped and only reports what would be done. Defaults to `true` outside CI, `false` in CI (GitHub Actions, GitLab CI). |
-| `--json` | Output result as JSON to stdout. |
+| `--cache_root` | Override the root path where cache volumes are mounted. Defaults to `$NSC_CACHE_PATH`. |
+| `--dry_run` | If true, mounting is skipped and only reports what would be done. Defaults to `true` outside CI, `false` in CI (GitHub Actions, GitLab CI). |
+| `--eval_file` | Write a file that can be sourced to export environment variables. |
+| `--output, -o` | Output format: `plain` or `json`. Defaults to `plain`. |
 
 **Examples:**
 

@@ -35,7 +35,7 @@ func newCacheModesCmd() *cobra.Command {
 		Short: "List available cache modes",
 	}
 
-	outputJSON := cmd.Flags().Bool("json", false, "Output result as JSON to stdout.")
+	outputFlag := cmd.Flags().StringP("output", "o", "plain", "Output format: plain or json.")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		modes := mode.DefaultModes()
@@ -45,7 +45,7 @@ func newCacheModesCmd() *cobra.Command {
 		}
 
 		var w io.Writer = os.Stdout
-		if *outputJSON {
+		if *outputFlag == "json" {
 			return outputModesJSON(w, modes, detected)
 		}
 
@@ -62,13 +62,13 @@ func newCacheMountCmd() *cobra.Command {
 		Short: "Restore cache paths from a Namespace volume",
 	}
 
-	dryRun := cmd.Flags().Bool("dry-run", !isCI(), "If true, mounting of paths is skipped.")
-	cacheRoot := cmd.Flags().String("cache-root", os.Getenv(defaultCacheRootEnv), "Override the root path where cache volumes are mounted.")
+	dryRun := cmd.Flags().Bool("dry_run", !isCI(), "If true, mounting of paths is skipped.")
+	cacheRoot := cmd.Flags().String("cache_root", os.Getenv(defaultCacheRootEnv), "Override the root path where cache volumes are mounted.")
 	detectModes := cmd.Flags().StringSlice("detect", []string{}, "Detects cache mode(s) based on environment. Supply '*' to enable all detectors.")
 	manualModes := cmd.Flags().StringSlice("mode", []string{}, "Explicit cache mode(s) to enable.")
 	manualPaths := cmd.Flags().StringSlice("path", []string{}, "Explicit cache path(s) to enable.")
-	outputJSON := cmd.Flags().Bool("json", false, "Output result as JSON to stdout.")
-	evalFile := cmd.Flags().String("eval-file", "", "Write a file that can be sourced to export environment variables.")
+	outputFlag := cmd.Flags().StringP("output", "o", "plain", "Output format: plain or json.")
+	evalFile := cmd.Flags().String("eval_file", "", "Write a file that can be sourced to export environment variables.")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		mounter, err := cache.NewMounter(*cacheRoot)
@@ -96,7 +96,7 @@ func newCacheMountCmd() *cobra.Command {
 		}
 
 		var w io.Writer = os.Stdout
-		if *outputJSON {
+		if *outputFlag == "json" {
 			return outputMountJSON(w, result)
 		}
 

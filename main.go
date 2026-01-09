@@ -25,7 +25,7 @@ func main() {
 		Long:  `A CLI tool for powering various Namespace functionality.`,
 	}
 
-	loglvl := cli.PersistentFlags().String("log-level", defaultLogLevel, "Log level (debug, info, warn, error)")
+	loglvl := cli.PersistentFlags().String("log_level", defaultLogLevel, "Log level (debug, info, warn, error)")
 
 	cli.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		return setLogger(*loglvl)

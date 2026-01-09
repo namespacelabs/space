@@ -15,11 +15,11 @@ func NewVersionCmd(version, commit, date string) *cobra.Command {
 		Short: "Print the version number of the Space CLI",
 	}
 
-	outputJSON := cmd.Flags().Bool("json", false, "Output result as JSON to stdout.")
+	outputFlag := cmd.Flags().StringP("output", "o", "plain", "Output format: plain or json.")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		var w io.Writer = os.Stdout
-		if *outputJSON {
+		if *outputFlag == "json" {
 			return outputVersionJSON(w, version, commit, date)
 		}
 
