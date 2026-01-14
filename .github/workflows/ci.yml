@@ -32,9 +32,7 @@ jobs:
             system-features = kvm nixos-test
 
       - name: Switch into Nix Shell
-        uses: lukas-mertens/switch-into-nix-shell@ce1f85f07ceba523ece60c73eb2b18d1fa5503f5 # v1.0.0
-        with:
-          install_nix: false
+        uses: rcrowe/switch-into-nix-shell@b109dab0869e1f5665d6eacc246cc5282da53811 # v1
 
       - name: Set up cache
         uses: namespacelabs/nscloud-cache-action@446d8f390563cd54ca27e8de5bdb816f63c0b706 # v1
@@ -79,9 +77,7 @@ jobs:
             system-features = kvm nixos-test
 
       - name: Switch into Nix Shell
-        uses: lukas-mertens/switch-into-nix-shell@ce1f85f07ceba523ece60c73eb2b18d1fa5503f5 # v1.0.0
-        with:
-          install_nix: false
+        uses: rcrowe/switch-into-nix-shell@b109dab0869e1f5665d6eacc246cc5282da53811 # v1
 
       - name: Setup cache with space binary
         run: |
