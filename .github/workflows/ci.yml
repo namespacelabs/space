@@ -72,7 +72,7 @@ jobs:
         uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
         with:
           space-enabled: true
-          space-version: '0.2.0-beta.1'
+          space-version: 'latest'
           path: /nix
 
       - name: Install Nix
