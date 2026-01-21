@@ -14,7 +14,7 @@ import (
 	"github.com/namespacelabs/space/internal/log"
 )
 
-const defaultLogLevel = "warn"
+const defaultLogLevel = "info"
 
 var (
 	Version = "dev"
