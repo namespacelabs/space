@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Nix cache
-        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        uses: namespacelabs/nscloud-cache-action@475da9d129ebc98dff02bddee62bec010beda890 # v1.3.0-beta.1
         with:
           space-enabled: true
           # space-version: '0.2.0-beta.1'
@@ -37,7 +37,7 @@ jobs:
         uses: rcrowe/switch-into-nix-shell@b109dab0869e1f5665d6eacc246cc5282da53811 # v1
 
       - name: Set up cache
-        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        uses: namespacelabs/nscloud-cache-action@475da9d129ebc98dff02bddee62bec010beda890 # v1.3.0-beta.1
         with:
           space-enabled: true
           # space-version: '0.2.0-beta.1'
@@ -67,12 +67,13 @@ jobs:
       - nscloud-cache-tag-space
     strategy:
       matrix:
-        space-version: ['', latest]
+        # space-version: ['', latest] # latest is currently broken
+        space-version: ['']
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Nix cache
-        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        uses: namespacelabs/nscloud-cache-action@3b6904f6f03450be8ecb4149ac410edc2eb5f3f1 # v1.3.0-beta.2
         with:
           space-enabled: true
           space-version: '${{ matrix.space-version }}'
@@ -89,7 +90,7 @@ jobs:
         uses: rcrowe/switch-into-nix-shell@b109dab0869e1f5665d6eacc246cc5282da53811 # v1
 
       - name: Set up Go cache
-        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        uses: namespacelabs/nscloud-cache-action@3b6904f6f03450be8ecb4149ac410edc2eb5f3f1 # v1.3.0-beta.2
         with:
           space-enabled: true
           space-version: '${{ matrix.space-version }}'
@@ -107,7 +108,7 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Nix cache
-        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        uses: namespacelabs/nscloud-cache-action@3b6904f6f03450be8ecb4149ac410edc2eb5f3f1 # v1.3.0-beta.2
         with:
           space-enabled: true
           path: /nix
@@ -126,7 +127,7 @@ jobs:
         run: go build -o dist/space .
 
       - name: Set up Go cache
-        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        uses: namespacelabs/nscloud-cache-action@3b6904f6f03450be8ecb4149ac410edc2eb5f3f1 # v1.3.0-beta.2
         with:
           space-enabled: true
           mode: go
