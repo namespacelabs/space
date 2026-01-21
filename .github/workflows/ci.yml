@@ -60,7 +60,45 @@ jobs:
         run: |
           golangci-lint run ./...
 
-  space-e2e:
+  space-e2e-release:
+    runs-on:
+      - nscloud-ubuntu-22.04-amd64-4x16-with-cache
+      - nscloud-cache-size-20gb
+      - nscloud-cache-tag-space
+    strategy:
+      matrix:
+        space-version: ['', latest]
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+
+      - name: Set up Nix cache
+        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        with:
+          space-enabled: true
+          space-version: '${{ matrix.space-version }}'
+          path: /nix
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15 # v31
+        with:
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            system-features = kvm nixos-test
+
+      - name: Switch into Nix Shell
+        uses: rcrowe/switch-into-nix-shell@b109dab0869e1f5665d6eacc246cc5282da53811 # v1
+
+      - name: Set up Go cache
+        uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
+        with:
+          space-enabled: true
+          space-version: '${{ matrix.space-version }}'
+          mode: go
+
+      - name: Force cache
+        run: go mod download
+
+  space-e2e-head:
     runs-on:
       - nscloud-ubuntu-22.04-amd64-4x16-with-cache
       - nscloud-cache-size-20gb
@@ -72,7 +110,6 @@ jobs:
         uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
         with:
           space-enabled: true
-          # space-version: '0.2.0-beta.1'
           path: /nix
 
       - name: Install Nix
@@ -88,7 +125,7 @@ jobs:
       - name: Install space from HEAD
         run: go build -o dist/space .
 
-      - name: Set up Nix cache
+      - name: Set up Go cache
         uses: namespacelabs/nscloud-cache-action@652b0109faeacbfebc50004c304dfd0c2235ea17 # v1.3.0-beta.1
         with:
           space-enabled: true
