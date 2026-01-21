@@ -11,6 +11,7 @@ import (
 	"github.com/willabides/actionslog/human"
 
 	"github.com/namespacelabs/space/internal/cli/cmd"
+	"github.com/namespacelabs/space/internal/log"
 )
 
 const defaultLogLevel = "warn"
@@ -69,7 +70,7 @@ func withDefaultLogger(lvl string) error {
 		return fmt.Errorf("invalid log level: %w", err)
 	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	logger := slog.New(log.NewPlainHandler(os.Stdout, &log.PlainHandlerOptions{
 		Level: slogLvl,
 	}))
 	slog.SetDefault(logger)
@@ -86,7 +87,7 @@ func parseLogLevel(str string) (slog.Level, error) {
 
 	var lvl slog.Level
 	if err := lvl.UnmarshalText([]byte(str)); err != nil {
-		return slog.LevelInfo, fmt.Errorf("unknown log level `%s`", str)
+		return slog.LevelInfo, fmt.Errorf("unknown log level %q", str)
 	}
 	return lvl, nil
 }
