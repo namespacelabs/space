@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/willabides/actionslog"
-	"github.com/willabides/actionslog/human"
 
 	"github.com/namespacelabs/space/internal/cli/cmd"
 	"github.com/namespacelabs/space/internal/log"
@@ -53,13 +51,7 @@ func setLogger(lvl string) error {
 }
 
 func withGithubLogger() error {
-	logger := slog.New(&actionslog.Wrapper{
-		Handler: (&human.Handler{
-			ExcludeTime:  true,
-			ExcludeLevel: true,
-			Level:        slog.LevelDebug,
-		}).WithOutput,
-	})
+	logger := slog.New(log.NewGithubHandler(os.Stdout))
 	slog.SetDefault(logger)
 	return nil
 }
