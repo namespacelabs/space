@@ -78,6 +78,9 @@ func newCacheMountCmd() *cobra.Command {
 
 		// In dry-run mode, we skip mounting and only report what would be done.
 		mounter.DestructiveMode = !*dryRun
+		if !mounter.DestructiveMode {
+			fmt.Fprintf(os.Stdout, "Dry Run mode enabled.\n")
+		}
 
 		result, err := mounter.Mount(cmd.Context(), cache.MountRequest{
 			DetectAllModes: len(*detectModes) == 1 && (*detectModes)[0] == "*",
@@ -178,10 +181,6 @@ func outputMountJSON(w io.Writer, result cache.MountResponse) error {
 }
 
 func outputMountText(w io.Writer, result cache.MountResponse) {
-	if !result.Output.DestructiveMode {
-		fmt.Fprintf(w, "Dry Run mode enabled.\n\n")
-	}
-
 	if len(result.Input.Modes) > 0 {
 		fmt.Fprintf(w, "Used modes: %v\n", strings.Join(result.Input.Modes, " "))
 	} else {
