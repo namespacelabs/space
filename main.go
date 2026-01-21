@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/willabides/actionslog"
+	"github.com/willabides/actionslog/human"
 
 	"github.com/namespacelabs/space/internal/cli/cmd"
 )
@@ -41,6 +44,26 @@ func main() {
 }
 
 func setLogger(lvl string) error {
+	if strings.ToLower(os.Getenv("GITHUB_ACTIONS")) == "true" {
+		return withGithubLogger()
+	}
+
+	return withDefaultLogger(lvl)
+}
+
+func withGithubLogger() error {
+	logger := slog.New(&actionslog.Wrapper{
+		Handler: (&human.Handler{
+			ExcludeTime:  true,
+			ExcludeLevel: true,
+			Level:        slog.LevelDebug,
+		}).WithOutput,
+	})
+	slog.SetDefault(logger)
+	return nil
+}
+
+func withDefaultLogger(lvl string) error {
 	slogLvl, err := parseLogLevel(lvl)
 	if err != nil {
 		return fmt.Errorf("invalid log level: %w", err)
