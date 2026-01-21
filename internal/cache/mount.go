@@ -219,10 +219,13 @@ func (m Mounter) mountPath(ctx context.Context, modeName, path string) (MountRes
 	}
 	mount.CacheHit = err == nil
 
+	logAttrs := []any{slog.String("from", cachePath), slog.String("to", path)}
 	if !m.DestructiveMode {
-		slog.DebugContext(ctx, "dry-run: would mount cache path", slog.String("from", cachePath), slog.String("to", path))
+		slog.DebugContext(ctx, "dry-run: would mount cache path", logAttrs...)
 		return mount, nil
 	}
+
+	slog.DebugContext(ctx, "mounting cache path", logAttrs...)
 
 	if err := m.Exec.Mount(ctx, cachePath, path); err != nil {
 		return MountResult{}, fmt.Errorf("mounting %q to %q: %w", cachePath, path, err)
@@ -263,6 +266,8 @@ func (m Mounter) writeMetadata(ctx context.Context, result *MountResponse) error
 	}
 
 	metadataDir := filepath.Dir(metadataPath)
+	slog.DebugContext(ctx, "creating metadata directory", slog.String("path", metadataDir))
+
 	if err := m.Exec.MkdirAll(metadataDir, 0o755); err != nil {
 		return fmt.Errorf("creating metadata directory: %w", err)
 	}
@@ -285,6 +290,7 @@ func (m Mounter) removePath(ctx context.Context, path string, result *MountRespo
 	}
 
 	slog.DebugContext(ctx, "removing path", slog.String("path", path))
+
 	if err := m.Exec.RemoveAll(path); err != nil {
 		return fmt.Errorf("removing %q: %w", path, err)
 	}
