@@ -43,9 +43,8 @@ func newCacheModesCmd() *cobra.Command {
 			return err
 		}
 
-		outputFlag, _ := cmd.Flags().GetString("output")
 		var w io.Writer = os.Stdout
-		if outputFlag == "json" {
+		if output, _ := cmd.Flags().GetString("output"); output == "json" {
 			return outputModesJSON(w, modes, detected)
 		}
 
