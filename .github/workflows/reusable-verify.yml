@@ -12,4 +12,4 @@ on:
 
 jobs:
   cache-action:
-    uses: namespacelabs/nscloud-cache-action/.github/workflows/reusable-verify.yaml@6519b9bfde7e15e69473c4962696e9ad6746ef73
+    uses: namespacelabs/nscloud-cache-action/.github/workflows/reusable-verify.yaml@1c5d5c388981fedada59234f925bcb63a0e58a39
