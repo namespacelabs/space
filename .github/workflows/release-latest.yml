@@ -1,0 +1,70 @@
+# Release latest
+#
+# This workflow creates a "latest" prerelease from the main branch.
+#
+# How it works:
+# 1. On each push to main, this workflow runs
+# 2. It cleans up any existing -latest releases and their tags
+# 3. It creates a new tag in the format vX.Y.0-latest (e.g., v0.5.0-latest)
+# 4. Pushing this tag triggers the release-tag.yml workflow (which matches v*)
+# 5. goreleaser runs with prerelease:auto, which automatically marks tags
+#    containing "-" as prereleases - so it won't appear as "latest stable"
+#
+# This approach avoids race conditions because:
+# - The tag format is deterministic and cleaned up before creation
+# - prerelease status is set by goreleaser during release creation, not after
+
+name: Release latest
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  trigger-latest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          fetch-depth: 0  # Fetch all history and tags for version calculation
+
+      - name: Clean up old latest releases
+        run: |
+          # Query GitHub for existing releases ending in -latest and delete them
+          # along with their tags. This ensures we don't accumulate old releases.
+          gh release list --json tagName -q '.[].tagName' | grep -E '\-latest$' | while read -r tag; do
+            echo "Deleting release: $tag"
+            gh release delete "$tag" --cleanup-tag --yes 2>/dev/null || true
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push latest tag
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+          # Find the latest stable semver tag (e.g., v1.2.3), excluding any -latest tags
+          DESCRIBE=$(git tag -l --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          if [ -z "$DESCRIBE" ]; then
+            DESCRIBE="v0.0.0"
+          fi
+
+          # Increment minor version for the latest tag
+          # e.g., if latest stable is v1.2.3, latest tag becomes v1.3.0-latest
+          MAJOR_VERSION=$(echo $DESCRIBE | cut -d. -f1)
+          MINOR_VERSION=$(echo $DESCRIBE | cut -d. -f2)
+          MINOR_VERSION=$((MINOR_VERSION + 1))
+
+          TAG="${MAJOR_VERSION}.${MINOR_VERSION}.0-latest"
+          echo "Creating tag: $TAG"
+
+          # Create and push the tag - this triggers release-tag.yml
+          git tag -fa "$TAG" -m "$TAG: latest build from main"
+          git push -f origin "$TAG"
