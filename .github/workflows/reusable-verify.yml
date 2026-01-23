@@ -1,0 +1,15 @@
+name: Reusable Verify
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+  merge_group:
+    types: [checks_requested]
+
+jobs:
+  cache-action:
+    uses: namespacelabs/nscloud-cache-action/.github/workflows/reusable-verify.yaml@6519b9bfde7e15e69473c4962696e9ad6746ef73
