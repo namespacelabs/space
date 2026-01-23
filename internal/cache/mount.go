@@ -3,7 +3,6 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -12,14 +11,8 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/namespacelabs/space/internal/cache/mode"
-)
-
-const (
-	privateNamespaceDir = ".ns"
-	metadataFilename    = "cache-metadata.json"
 )
 
 type MountRequest struct {
@@ -139,11 +132,6 @@ func (m Mounter) Mount(ctx context.Context, req MountRequest) (MountResponse, er
 		return MountResponse{}, err
 	}
 
-	// Write metadata
-	if err := m.writeMetadata(ctx, &result); err != nil {
-		return MountResponse{}, err
-	}
-
 	// Get disk usage (allowed to fail)
 	if usage, err := m.Exec.DiskUsage(ctx, m.CacheRoot); err == nil {
 		result.Output.DiskUsage = &usage
@@ -231,54 +219,6 @@ func (m Mounter) mountPath(ctx context.Context, modeName, path string) (MountRes
 		return MountResult{}, fmt.Errorf("mounting %q to %q: %w", cachePath, path, err)
 	}
 	return mount, nil
-}
-
-func (m Mounter) writeMetadata(ctx context.Context, result *MountResponse) error {
-	metadataPath := filepath.Join(m.CacheRoot, privateNamespaceDir, metadataFilename)
-
-	if !m.DestructiveMode {
-		slog.Debug("dry-run: would write cache metadata", slog.String("path", metadataPath))
-		return nil
-	}
-
-	metadata := CacheMetadata{
-		Version:     1,
-		UpdatedAt:   time.Now().UTC().Format(time.RFC3339Nano),
-		UserRequest: make(map[string]CacheMetadataEntry, len(result.Output.Mounts)),
-	}
-
-	for _, mount := range result.Output.Mounts {
-		var cacheFramework *string
-		if mount.Mode != "" {
-			cacheFramework = &mount.Mode
-		}
-
-		metadata.UserRequest[mount.CachePath] = CacheMetadataEntry{
-			CacheFramework: cacheFramework,
-			MountTarget:    []string{mount.MountPath},
-			Source:         "space",
-		}
-	}
-
-	data, err := json.MarshalIndent(metadata, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshaling metadata: %w", err)
-	}
-
-	metadataDir := filepath.Dir(metadataPath)
-	slog.Debug("creating metadata directory", slog.String("path", metadataDir))
-
-	if err := m.Exec.MkdirAll(metadataDir, 0o755); err != nil {
-		return fmt.Errorf("creating metadata directory: %w", err)
-	}
-
-	slog.Debug("writing cache metadata", slog.String("path", metadataPath))
-
-	if err := m.Exec.WriteFile(metadataPath, data, 0o644); err != nil {
-		return fmt.Errorf("writing metadata file: %w", err)
-	}
-
-	return nil
 }
 
 func (m Mounter) removePath(ctx context.Context, path string, result *MountResponse) error {
