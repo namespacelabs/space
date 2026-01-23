@@ -41,6 +41,7 @@ release:
   github:
     owner: namespacelabs
     name: space
+  prerelease: auto
 
 snapshot:
   name_template: "{{ incpatch .Version }}-snapshot"
