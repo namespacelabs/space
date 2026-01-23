@@ -6,21 +6,18 @@
 # 1. On each push to main, this workflow runs
 # 2. It cleans up any existing -latest releases and their tags
 # 3. It creates a new tag in the format vX.Y.0-latest (e.g., v0.5.0-latest)
-# 4. Pushing this tag triggers the release-tag.yml workflow (which matches v*)
+# 4. It triggers release-tag.yml via workflow_dispatch (this works because
+#    workflow_dispatch is exempt from the GITHUB_TOKEN workflow trigger restriction)
 # 5. goreleaser runs with prerelease:auto, which automatically marks tags
 #    containing "-" as prereleases - so it won't appear as "latest stable"
-#
-# This approach avoids race conditions because:
-# - The tag format is deterministic and cleaned up before creation
-# - prerelease status is set by goreleaser during release creation, not after
 
 name: Release latest
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -45,7 +42,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push latest tag
+      - name: Create latest tag
+        id: tag
         run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
@@ -64,7 +62,12 @@ jobs:
 
           TAG="${MAJOR_VERSION}.${MINOR_VERSION}.0-latest"
           echo "Creating tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-          # Create and push the tag - this triggers release-tag.yml
           git tag -fa "$TAG" -m "$TAG: latest build from main"
           git push -f origin "$TAG"
+
+      - name: Trigger release workflow
+        run: gh workflow run release-tag.yml -f tag=${{ steps.tag.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
