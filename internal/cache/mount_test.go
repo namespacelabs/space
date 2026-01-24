@@ -1070,3 +1070,85 @@ func filterMounts(mounts []cache.MountResult) []cache.MountResult {
 	}
 	return result
 }
+
+func TestMountTargetExists(t *testing.T) {
+	t.Run("non-existent path returns false", func(t *testing.T) {
+		exists, err := cache.MountTargetExists("/nonexistent/path/that/does/not/exist")
+		require.NoError(t, err)
+		require.False(t, exists)
+	})
+
+	t.Run("file returns true", func(t *testing.T) {
+		tmpFile := filepath.Join(t.TempDir(), "file.txt")
+		require.NoError(t, os.WriteFile(tmpFile, []byte("content"), 0o644))
+
+		exists, err := cache.MountTargetExists(tmpFile)
+		require.NoError(t, err)
+		require.True(t, exists)
+	})
+
+	t.Run("empty directory returns false", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		exists, err := cache.MountTargetExists(tmpDir)
+		require.NoError(t, err)
+		require.False(t, exists)
+	})
+
+	t.Run("non-empty directory returns true", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "file.txt"), []byte("content"), 0o644))
+
+		exists, err := cache.MountTargetExists(tmpDir)
+		require.NoError(t, err)
+		require.True(t, exists)
+	})
+
+	t.Run("symlink to non-empty directory returns true", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "file.txt"), []byte("content"), 0o644))
+
+		symlinkPath := tmpDir + "_symlink"
+		require.NoError(t, os.Symlink(tmpDir, symlinkPath))
+		t.Cleanup(func() { _ = os.Remove(symlinkPath) })
+
+		exists, err := cache.MountTargetExists(symlinkPath)
+		require.NoError(t, err)
+		require.True(t, exists)
+	})
+
+	t.Run("symlink to empty directory returns false", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		symlinkPath := tmpDir + "_symlink"
+		require.NoError(t, os.Symlink(tmpDir, symlinkPath))
+		t.Cleanup(func() { _ = os.Remove(symlinkPath) })
+
+		exists, err := cache.MountTargetExists(symlinkPath)
+		require.NoError(t, err)
+		require.False(t, exists)
+	})
+
+	t.Run("symlink to file returns true", func(t *testing.T) {
+		tmpFile := filepath.Join(t.TempDir(), "file.txt")
+		require.NoError(t, os.WriteFile(tmpFile, []byte("content"), 0o644))
+
+		symlinkPath := tmpFile + "_symlink"
+		require.NoError(t, os.Symlink(tmpFile, symlinkPath))
+		t.Cleanup(func() { _ = os.Remove(symlinkPath) })
+
+		exists, err := cache.MountTargetExists(symlinkPath)
+		require.NoError(t, err)
+		require.True(t, exists)
+	})
+
+	t.Run("broken symlink returns false", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		symlinkPath := filepath.Join(tmpDir, "broken_symlink")
+		require.NoError(t, os.Symlink("/nonexistent/target", symlinkPath))
+
+		exists, err := cache.MountTargetExists(symlinkPath)
+		require.NoError(t, err)
+		require.False(t, exists)
+	})
+}

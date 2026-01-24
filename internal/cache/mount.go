@@ -254,12 +254,12 @@ type DiskUsage struct {
 type DefaultExecutor struct{}
 
 func (e DefaultExecutor) Mount(ctx context.Context, from, to string) error {
-	mountPathEmpty, err := isEmptyDir(to)
+	exists, err := MountTargetExists(to)
 	if err != nil {
-		return fmt.Errorf("checking mount path content: %w", err)
+		return fmt.Errorf("checking mount target: %w", err)
 	}
-	if !mountPathEmpty {
-		slog.Debug("mount path will be overwritten", slog.String("path", to))
+	if exists {
+		slog.Debug("mount target will be overwritten", slog.String("path", to))
 	}
 
 	slog.Debug("mounting path", slog.String("from", from), slog.String("to", to))
@@ -337,15 +337,63 @@ func absDir(path string) (string, error) {
 	return absPath, nil
 }
 
-func isEmptyDir(name string) (bool, error) {
-	files, err := os.ReadDir(name)
+// MountTargetExists checks if a mount target path exists and has content.
+// For files, it returns true if the file exists.
+// For directories, it returns true only if the directory is non-empty.
+// For symlinks, it follows the link and applies the same logic.
+// Returns false for non-existent paths or broken symlinks.
+func MountTargetExists(path string) (bool, error) {
+	info, err := os.Lstat(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return true, nil
+			return false, nil
 		}
 		return false, err
 	}
-	return len(files) == 0, nil
+
+	if info.Mode()&os.ModeSymlink != 0 {
+		return symlinkTargetExists(path)
+	}
+
+	if info.IsDir() {
+		return dirHasContent(path)
+	}
+
+	// Regular file exists
+	return true, nil
+}
+
+func symlinkTargetExists(path string) (bool, error) {
+	realPath, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	info, err := os.Stat(realPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	if info.IsDir() {
+		return dirHasContent(realPath)
+	}
+
+	// Symlink to file
+	return true, nil
+}
+
+func dirHasContent(path string) (bool, error) {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return false, err
+	}
+	return len(entries) > 0, nil
 }
 
 func run(ctx context.Context, name string, args ...string) ([]byte, error) {
