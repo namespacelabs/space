@@ -19,4 +19,5 @@ jobs:
     # https://github.com/namespacelabs/nscloud-cache-action/pull/64
     uses: namespacelabs/nscloud-cache-action/.github/workflows/modes-reusable.yaml@1d18b2e00fa7afd0d09b19c71281583393cad130
     with:
-      space-source-ref: ${{ github.sha }}
+      # Use PR head SHA for pull requests, otherwise use the push SHA
+      space-source-ref: ${{ github.event.pull_request.head.sha || github.sha }}
