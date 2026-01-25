@@ -1,0 +1,22 @@
+# Tests the nscloud-cache-action against all cache modes using the current space binary.
+# This ensures changes to space don't break any cache mode integrations.
+
+name: Cache action
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+  merge_group:
+    types: [checks_requested]
+
+jobs:
+  test-cache-modes:
+    # TODO: Update to main branch SHA once PR #64 is merged
+    # https://github.com/namespacelabs/nscloud-cache-action/pull/64
+    uses: namespacelabs/nscloud-cache-action/.github/workflows/modes-reusable.yaml@1d18b2e00fa7afd0d09b19c71281583393cad130
+    with:
+      space-source-ref: ${{ github.sha }}
