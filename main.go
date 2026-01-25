@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -12,6 +13,11 @@ import (
 	"github.com/namespacelabs/space/internal/cli/cmd"
 	"github.com/namespacelabs/space/internal/log"
 )
+
+type errorResponse struct {
+	Error   bool   `json:"error"`
+	Message string `json:"message"`
+}
 
 const defaultLogLevel = "info"
 
@@ -31,10 +37,12 @@ func main() {
 	loglvl := cli.PersistentFlags().String("log_level", defaultLogLevel, "Log level (debug, info, warn, error)")
 	outputFlag := cli.PersistentFlags().StringP("output", "o", "plain", "Output format: plain or json.")
 
-	cli.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+	cli.PersistentPreRunE = func(c *cobra.Command, args []string) error {
 		logDest := io.Writer(os.Stdout)
 		if *outputFlag == "json" {
 			logDest = os.Stderr
+			cli.SilenceErrors = true
+			cli.SilenceUsage = true
 		}
 		return setLogger(*loglvl, logDest)
 	}
@@ -43,7 +51,13 @@ func main() {
 	cli.AddCommand(cmd.NewVersionCmd(Version, Commit, Date))
 
 	if err := cli.Execute(); err != nil {
-		slog.Error(err.Error())
+		if cli.SilenceErrors {
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			_ = enc.Encode(errorResponse{Error: true, Message: err.Error()})
+		} else {
+			slog.Error(err.Error())
+		}
 		os.Exit(1)
 	}
 }
