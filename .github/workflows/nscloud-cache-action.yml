@@ -17,7 +17,7 @@ jobs:
   modes:
     # TODO: Update to main branch SHA once PR #64 is merged
     # https://github.com/namespacelabs/nscloud-cache-action/pull/64
-    uses: namespacelabs/nscloud-cache-action/.github/workflows/modes-reusable.yaml@9113e68318f0b30f566b88866ba4a746128db398 # space-matrix
+    uses: namespacelabs/nscloud-cache-action/.github/workflows/modes-reusable.yaml@5036d7df7d883d5f38362b3e335001cda718a273 # v1.3.0-beta.4
     with:
       space-source-ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
