@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This repository has moved to [github.com/namespacelabs/spacectl](https://github.com/namespacelabs/spacectl)
+
 <p>
   <a href="https://namespace.so">
     <img src="https://storage.googleapis.com/namespacelabs-docs-assets/gh/banner.svg" height="100">
